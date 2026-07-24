@@ -13,12 +13,18 @@ function build_type_not_supported() {
     exit 40
 }
 
+function get_version() {
+    echo ""
+    echo "[App Manager] Version 2026.07.24.02"
+    echo ""
+}
+
 function build_bitwarden_locally() {
     download_uri="https://bitwarden.com/download/?app=desktop&platform=linux&variant=appimage"
     [[ -d "$HOME/library/applications/.builds/Bitwarden" ]] && remove_bitwarden_locally || echo "[App Manager] Bitwarden not found (userspace), proceeding to build."
-    cd $HOME/tmp/range && mkdir Bitwarden; cd ./Bitwarden
+    cd /tmp/$(whoami)/range && mkdir Bitwarden; cd ./Bitwarden
     curl -LO $download_uri && mv ./download bitwarden; chmod 750 ./bitwarden
-    cd $HOME/tmp/range && mv ./Bitwarden $HOME/library/applications/.builds
+    cd /tmp/$(whoami)/range && mv ./Bitwarden $HOME/library/applications/.builds
     cd $HOME/.pathfind/ && ln -fs $HOME/library/applications/.builds/Bitwarden/bitwarden
     echo "[App Manager] Finished downloading Bitwarden."
     echo ""
@@ -39,9 +45,9 @@ function build_bitwarden_systemwide() {
 function build_curseforge_locally() {
     download_uri="https://curseforge.overwolf.com/downloads/curseforge-latest-linux.AppImage"
     [[ -d "$HOME/library/applications/.builds/CurseForge" ]] && remove_curseforge_locally || echo "[App Manager] CurseForge not found in userspace, proceeding to build."
-    cd $HOME/tmp/range; mkdir CurseForge && cd ./CurseForge
+    cd /tmp/$(whoami)/range; mkdir CurseForge && cd ./CurseForge
     curl -LO $download_uri && mv ./curseforge-latest-linux.AppImage curseforge; chmod 750 ./curseforge
-    cd $HOME/tmp/range && mv ./CurseForge $HOME/library/applications/.builds
+    cd /tmp/$(whoami)/range && mv ./CurseForge $HOME/library/applications/.builds
     cd $HOME/.pathfind && ln -fs $HOME/library/applications/.builds/CurseForge/curseforge
     echo "[App Manager] Finished downloading CurseForge."
     echo ""
@@ -62,7 +68,7 @@ function build_curseforge_systemwide() {
 function build_discord_locally() {
     download_uri="https://discord.com/api/download?platform=linux&format=tar.gz"
     [[ -d "$HOME/library/applications/.builds/Discord" ]] && remove_discord_locally || echo "[App Manager] Discord not found, proceeding to build."
-    cd $HOME/tmp/range && curl -LO $download_uri
+    cd /tmp/$(whoami)/range && curl -LO $download_uri
     mv ./download discord.tar.gz; tar -zvxf ./discord.tar.gz; rm -fr ./discord.tar.gz
     mv ./Discord/ $HOME/library/applications/.builds
     cd $HOME/.pathfind && ln -fs $HOME/library/applications/.builds/Discord/discord; ln -fs $HOME/library/applications/.builds/Discord/updater_bootstrap
@@ -85,7 +91,7 @@ function build_discord_systemwide() {
 function build_vscode_locally() {
     download_uri="https://code.visualstudio.com/sha/download?build=stable&os=linux-x64"
     [[ -d "$HOME/library/applications/.builds/VSCode-linux-x64" ]] && remove_vscode_locally || echo "[App Manager] Visual Studio Code not found, proceeding to build."
-    cd $HOME/tmp/range && rm -fr ./*
+    cd /tmp/$(whoami)/range && rm -fr ./*
     curl -LO $download_uri && mv ./download vscode.tar.gz; tar -zvxf ./vscode.tar.gz
     rm -fr ./vscode.tar.gz && mv ./VSCode-linux-x64 $HOME/library/applications/.builds
     cd $HOME/.pathfind && ln -fs $HOME/library/applications/.builds/VSCode-linux-x64/code vscode
@@ -111,8 +117,8 @@ function create_designated_path() {
 }
 
 function test_and_create_range_directory() {
-    [[ -d "$HOME/tmp/range" ]] && echo "[App Manager] Test Range directory...OK" || echo "[App Manager] Test Range directory...NOT FOUND."
-    mkdir -p $HOME/tmp/range && echo "[App Manager] Test Range directory...COMPLETE." || echo "[App Manager] Could not create the test range directory...FAILURE!"
+    [[ -d "/tmp/$(whoami)/range" ]] && echo "[App Manager] Test Range directory...OK" || echo "[App Manager] Test Range directory...NOT FOUND."
+    mkdir -p /tmp/$(whoami)/range && echo "[App Manager] Test Range directory...COMPLETE." || echo "[App Manager] Could not create the test range directory...FAILURE!"
 }
 
 function insufficientPermissions() {
@@ -218,6 +224,9 @@ function main() {
                     echo ""
                     ;;
             esac
+            ;;
+        "--version")
+            get_version
             ;;
         *)
             echo "[App Manager] Action '$action' not recognized."
