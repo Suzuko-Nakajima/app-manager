@@ -1,0 +1,241 @@
+#!/usr/bin/env bash
+
+function app_not_found() {
+    echo "[App Manager] Could not find app [$1], stopping process."
+    exit 1
+}
+
+function build_type_not_supported() {
+    build_type=$1
+    appname=$2
+    echo "[App Manager] Build type [$build_type] is not supported for '$appname'."
+    echo ""
+    exit 40
+}
+
+function build_bitwarden_locally() {
+    download_uri="https://bitwarden.com/download/?app=desktop&platform=linux&variant=appimage"
+    [[ -d "$HOME/library/applications/.builds/Bitwarden" ]] && remove_bitwarden_locally || echo "[App Manager] Bitwarden not found (userspace), proceeding to build."
+    cd $HOME/tmp/range && mkdir Bitwarden; cd ./Bitwarden
+    curl -LO $download_uri && mv ./download bitwarden; chmod 750 ./bitwarden
+    cd $HOME/tmp/range && mv ./Bitwarden $HOME/library/applications/.builds
+    cd $HOME/.pathfind/ && ln -fs $HOME/library/applications/.builds/Bitwarden/bitwarden
+    echo "[App Manager] Finished downloading Bitwarden."
+    echo ""
+}
+
+function build_bitwarden_systemwide() {
+    download_uri="https://bitwarden.com/download/?app=desktop&platform=linux&variant=appimage"
+    [[ -d "/.dedicated/apps/Bitwarden" ]] && remove_bitwarden || echo "[App Manager - System Build] Bitwarden not found, proceeding to build."
+    cd /.dedicated/tmp/range
+    mkdir Bitwarden && cd ./Bitwarden
+    curl -LO $download_uri && mv ./download bitwarden; chmod 755 ./bitwarden
+    cd /.dedicated/tmp/range && mv ./Bitwarden /.dedicated/apps
+    cd /usr/local/bin && ln -s /.dedicated/apps/Bitwarden/bitwarden
+    echo "[App Manager - System Build] Finished downloading Bitwarden."
+    echo ""
+}
+
+function build_curseforge_locally() {
+    download_uri="https://curseforge.overwolf.com/downloads/curseforge-latest-linux.AppImage"
+    [[ -d "$HOME/library/applications/.builds/CurseForge" ]] && remove_curseforge_locally || echo "[App Manager] CurseForge not found in userspace, proceeding to build."
+    cd $HOME/tmp/range; mkdir CurseForge && cd ./CurseForge
+    curl -LO $download_uri && mv ./curseforge-latest-linux.AppImage curseforge; chmod 750 ./curseforge
+    cd $HOME/tmp/range && mv ./CurseForge $HOME/library/applications/.builds
+    cd $HOME/.pathfind && ln -fs $HOME/library/applications/.builds/CurseForge/curseforge
+    echo "[App Manager] Finished downloading CurseForge."
+    echo ""
+}
+
+function build_curseforge_systemwide() {
+    uri="https://curseforge.overwolf.com/downloads/curseforge-latest-linux.AppImage"
+    [[ -d "/.dedicated/apps/CurseForge" ]] && remove_curseforge_systemwide || echo "[App Manager - System Build] CurseForge not found, proceeding to build."
+    cd /.dedicated/tmp/range
+    mkdir CurseForge && cd ./CurseForge
+    curl -LO "https://curseforge.overwolf.com/downloads/curseforge-latest-linux.AppImage" && mv ./curseforge-latest-linux.AppImage curseforge
+    chmod 755 ./curseforge; cd /.dedicated/tmp/range && mv ./CurseForge/ /.dedicated/apps
+    cd /usr/local/bin && ln -s /.dedicated/apps/CurseForge/curseforge
+    echo "[App Manager - System Build] Finished downloading CurseForge."
+    echo ""
+}
+
+function build_discord_locally() {
+    download_uri="https://discord.com/api/download?platform=linux&format=tar.gz"
+    [[ -d "$HOME/library/applications/.builds/Discord" ]] && remove_discord_locally || echo "[App Manager] Discord not found, proceeding to build."
+    cd $HOME/tmp/range && curl -LO $download_uri
+    mv ./download discord.tar.gz; tar -zvxf ./discord.tar.gz; rm -fr ./discord.tar.gz
+    mv ./Discord/ $HOME/library/applications/.builds
+    cd $HOME/.pathfind && ln -fs $HOME/library/applications/.builds/Discord/discord; ln -fs $HOME/library/applications/.builds/Discord/updater_bootstrap
+    echo "[App Manager] Finished downloading Discord."; echo ""
+}
+
+function build_discord_systemwide() {
+    uri="https://discord.com/api/download?platform=linux&format=tar.gz"
+    [[ -d "/.dedicated/apps/Discord" ]] && remove_discord_systemwide || echo "[App Manager - System Build] Discord not found, proceeding to build."
+    cd /.dedicated/tmp/range
+    curl -LO $uri
+    mv ./download discord.tar.gz
+    tar -zvxf ./discord.tar.gz
+    rm -fr ./discord.tar.gz
+    mv ./Discord/ /.dedicated/apps
+    cd /usr/local/bin && ln -s /.dedicated/apps/Discord/discord; ln -s /.dedicated/apps/Discord/updater_bootstrap
+    echo "[App Manager - System Build] Finished downloading Discord."
+}
+
+function build_vscode_locally() {
+    download_uri="https://code.visualstudio.com/sha/download?build=stable&os=linux-x64"
+    [[ -d "$HOME/library/applications/.builds/VSCode-linux-x64" ]] && remove_vscode_locally || echo "[App Manager] Visual Studio Code not found, proceeding to build."
+    cd $HOME/tmp/range && rm -fr ./*
+    curl -LO $download_uri && mv ./download vscode.tar.gz; tar -zvxf ./vscode.tar.gz
+    rm -fr ./vscode.tar.gz && mv ./VSCode-linux-x64 $HOME/library/applications/.builds
+    cd $HOME/.pathfind && ln -fs $HOME/library/applications/.builds/VSCode-linux-x64/code vscode
+    echo "[App Manager] Finished downloading Visual Studio Code."; echo ""
+}
+
+function create_dedicated_apps_directory() {
+    echo "[App Manager] Attempting to create 'Dedicated Apps' directory..."
+    mkdir -p /.dedicated/apps && echo "[App Manager] Finished creating the 'Dedicated Apps' directory."
+}
+
+function create_dedicated_directory() {
+    echo "[App Manager] 'Dedicated' directory not found...attempting to create..."
+    cd /
+    mkdir .dedicated
+    echo "[App Manager] 'Dedicated' directory created."
+}
+
+function create_designated_path() {
+    echo "[App Manager] Designated path not set or incomplete, now proceeding with creation/fix..."
+    cd $HOME && mkdir -p library/applications/.builds || exit 1
+    echo "[App Manager] Designated path...COMPLETE."
+}
+
+function test_and_create_range_directory() {
+    [[ -d "$HOME/tmp/range" ]] && echo "[App Manager] Test Range directory...OK" || echo "[App Manager] Test Range directory...NOT FOUND."
+    mkdir -p $HOME/tmp/range && echo "[App Manager] Test Range directory...COMPLETE." || echo "[App Manager] Could not create the test range directory...FAILURE!"
+}
+
+function insufficientPermissions() {
+    echo "[App Manager] [Error - Flag: 401 | Unauthorized] Insufficient Permission(s); must run as root."
+    echo ""
+    echo "[App Manager] Why? This command modifies the '.dedicated' directory located in the root directory."
+    exit 1
+}
+
+function remove_bitwarden_locally() {
+    [[ -d "$HOME/library/applications/.builds/Bitwarden" ]] && echo "[App Manager] Found Bitwarden, proceeding with removal." || app_not_found "Bitwarden"
+    cd $HOME/library/applications/.builds; echo "[App Manager] Removing Bitwarden..."
+    rm -fr ./Bitwarden/; rm -fr $HOME/.pathfind/bitwarden; echo "[App Manager] Removed Bitwarden"
+}
+
+function remove_bitwarden_systemwide() {
+    [[ -d "/.dedicated/apps/Bitwarden" ]] && echo "[App Manager - System-wide Removal] Found Bitwarden, proceeding with removal." || app_not_found "Bitwarden"
+    cd /.dedicated/apps
+    echo "[App Manager - System-wide Removal] Removing Bitwarden..."
+    rm -fr ./Bitwarden/; rm -fr /usr/local/bin/bitwarden; echo "[App Manager - System-wide Removal] Removed Bitwarden."
+}
+
+function remove_curseforge_locally() {
+    [[ -d "$HOME/library/applications/.builds/CurseForge" ]] && echo "[App Manager] Found CurseForge, proceeding with removal." || app_not_found "CurseForge"
+    cd $HOME/library/applications/.builds; echo "[App Manager] Removing CurseForge..."
+    rm -fr ./CurseForge/; rm -fr $HOME/.pathfind/curseforge && echo "[App Manager] Removed CurseForge."
+}
+
+function remove_curseforge_systemwide() {
+    [[ -d "/.dedicated/apps/CurseForge" ]] && echo "[App Manager - System-wide Removal] Found CurseForge, proceeding with removal." || app_not_found "CurseForge"
+    cd /.dedicated/apps
+    echo "[App Manager] Removing CurseForge..."
+    rm -fr ./CurseForge/; rm -fr /usr/local/bin/curseforge && echo "[App Manager - System-wide Removal] Removed CurseForge."
+}
+
+function remove_discord_locally() {
+    [[ -d "$HOME/library/applications/.builds/Discord" ]] && echo "[App Manager] Found Discord, proceeding with removal." || app_not_found "Discord"
+    cd $HOME/library/applications/.builds; echo "[App Manager] Removing Discord..."
+    rm -fr ./Discord/; rm -fr $HOME/.pathfind/discord; rm -fr $HOME/.pathfind/updater_bootstrap && echo "[App Manager] Removed Discord."
+}
+
+function remove_discord_systemwide() {
+    [[ -d "/.dedicated/apps/Discord" ]] && echo "[App Manager - System-wide Removal] Found Discord, proceeding with removal." || app_not_found "Discord"
+    cd /.dedicated/apps
+    echo "[App Manager] Removing Discord..."
+    rm -fr ./Discord/; rm -fr /usr/local/bin/discord; rm -fr /usr/local/bin/updater_bootstrap && echo "[App Manager - System-wide Removal] Removed Discord."
+}
+
+function remove_vscode_locally() {
+    [[ -d "$HOME/library/applications/.builds/VSCode-linux-x64" ]] && echo "[App Manager] Found Visual Studio Code, proceeding with removal." || app_not_found "Visual Studio Code"
+    cd $HOME/library/applications/.builds; echo "[App Manager] Removing Visual Studio Code..."
+    rm -fr ./VSCode-linux-x64/; rm -fr $HOME/.pathfind/vscode && echo "[App Manager - Local] Removed Visual Studio Code."
+}
+
+function test_for_and_create_dedicated_directory() {
+    [[ "$(id -u)" -eq 0 ]] && echo "[App Manager] Permission Granted" || insufficientPermissions
+    [[ -d "/.dedicated" ]] && echo "Dedicated directory...OK" || create_dedicated_directory
+    [[ -d "/.dedicated/apps" ]] && echo "'Dedicated Apps' directory...OK" || create_dedicated_apps_directory
+}
+
+function main() {
+    action=$1
+    app=$2
+    flag=$3
+    [[ "$(id -u)" -eq 0 ]] && test_for_and_create_dedicated_directory || test_and_create_range_directory
+    case $action in
+        "--build")
+            case $app in
+                "bitwarden")
+                    [[ "$(id -u)" -eq 0 ]] && build_bitwarden_systemwide || build_bitwarden_locally
+                    ;;
+                "curseforge")
+		    [[ "$(id -u)" -eq 0 ]] && build_curseforge_systemwide || build_curseforge_locally
+                    ;;
+                "discord")
+                    [[ "$(id -u)" -eq 0 ]] && build_discord_systemwide || build_discord_locally
+                    ;;
+                "vscode" | "code")
+                    [[ "$(id -u)" -eq 0 ]] && build_type_not_supported "System-wide" "Visual Studio Code" || build_vscode_locally
+                    ;;
+                *)
+                    echo "[App Manager - Build/Install] App '$app' not recognized. Please double-check spelling and use all lowercase letters."
+                    echo ""
+                    ;;
+            esac
+            ;;
+        "--remove")
+            case $app in
+                "bitwarden")
+                    [[ "$(id -u)" -eq 0 ]] && remove_bitwarden_systemwide || remove_bitwarden_locally
+                    ;;
+                "curseforge")
+                    [[ "$(id -u)" -eq 0 ]] && remove_curseforge_systemwide || remove_curseforge_locally
+                    ;;
+                "discord")
+                    [[ "$(id -u)" -eq 0 ]] && remove_discord_systemwide || remove_discord_locally
+                    ;;
+                "vscode" | "code")
+                    [[ "$(id -u)" -eq 0 ]] && build_type_not_supported "System-wide" "Visual Studio Code" || remove_vscode_locally
+                    ;;
+                *)
+                    echo "[App Manager - Remove] App '$app' not recognized. Please double-check spelling and use all lowercase letters."
+                    echo ""
+                    ;;
+            esac
+            ;;
+        *)
+            echo "[App Manager] Action '$action' not recognized."
+            echo ""
+            echo "Supported actions: "
+            echo "--build | Build/Install an application."
+            echo "--remove | Remove an installed application."
+            echo ""
+            echo "Usage: app-manager <required; action> <required; app_name> <optional; flag>"
+            echo "Currently supported applications: "
+            echo "- Bitwarden"
+            echo "- CurseForge"
+            echo "- Discord"
+            echo "- VSCode [System-wide support unavailable.]"
+            echo ""
+            echo "NOTE: When specifying an app to 'build' or 'remove', the application name must be lowercase."
+            echo ""
+    esac
+}
+
+main $1 $2 $3
