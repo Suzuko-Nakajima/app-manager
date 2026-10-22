@@ -104,7 +104,7 @@ function build_discord_systemwide() {
 function build_sober_using_flatpak() {
     app="org.vinegarhq.Sober"
     command -v flatpak && echo "Proceeding..." || flatpakMissingOrCorrupted
-    flatpak install flathub $app
+    flatpak install flathub $app && echo "OK" || flatpak update $app
 }
 
 function build_vscode_locally() {
@@ -271,6 +271,7 @@ function main() {
             echo "- Bitwarden"
             echo "- CurseForge"
             echo "- Discord"
+            echo "- Sober"
             echo "- VSCode [System-wide support unavailable.]"
             echo ""
             echo "NOTE: When specifying an app to 'build' or 'remove', the application name must be lowercase."
