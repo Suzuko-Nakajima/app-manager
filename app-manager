@@ -26,6 +26,11 @@ function get_version() {
     echo ""
 }
 
+function permissionViolation() {
+    echo "[Error - Flag: X | Violation] Permission Violation; cannot run as root (super user)."
+    exit 13
+}
+
 function build_bitwarden_locally() {
     download_uri="https://bitwarden.com/download/?app=desktop&platform=linux&variant=appimage"
     [[ -d "$HOME/library/applications/.builds/Bitwarden" ]] && remove_bitwarden_locally || echo "[App Manager] Bitwarden not found (userspace), proceeding to build."
