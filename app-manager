@@ -22,7 +22,8 @@ function flatpakMissingOrCorrupted() {
 
 function get_version() {
     echo ""
-    echo "[App Manager] Version 2026.07.24.02"
+    echo "[App Manager] Version 2026.10.22.04"
+    echo "~ Supplied by Killjoy Katherine."
     echo ""
 }
 
