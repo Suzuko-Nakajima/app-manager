@@ -13,6 +13,13 @@ function build_type_not_supported() {
     exit 40
 }
 
+function flatpakMissingOrCorrupted() {
+    echo ""
+    echo "[Error - Flag: M | Missing] Flatpak is either missing or corrupt, if Flatpak is installed, reinstall the package. If not installed, please install the package."
+    echo ""
+    exit 4
+}
+
 function get_version() {
     echo ""
     echo "[App Manager] Version 2026.07.24.02"
@@ -86,6 +93,12 @@ function build_discord_systemwide() {
     mv ./Discord/ /.dedicated/apps
     cd /usr/local/bin && ln -s /.dedicated/apps/Discord/discord; ln -s /.dedicated/apps/Discord/updater_bootstrap
     echo "[App Manager - System Build] Finished downloading Discord."
+}
+
+function build_sober_using_flatpak() {
+    app="org.vinegarhq.Sober"
+    command -v flatpak && echo "Proceeding..." || flatpakMissingOrCorrupted
+    flatpak install flathub $app
 }
 
 function build_vscode_locally() {
@@ -167,6 +180,12 @@ function remove_discord_systemwide() {
     rm -fr ./Discord/; rm -fr /usr/local/bin/discord; rm -fr /usr/local/bin/updater_bootstrap && echo "[App Manager - System-wide Removal] Removed Discord."
 }
 
+function remove_sober_using_flatpak() {
+    app="org.vinegarhq.Sober"
+    command -v flatpak && echo "Proceeding..." || flatpakMissingOrCorrupted
+    flatpak uninstall flathub $app
+}
+
 function remove_vscode_locally() {
     [[ -d "$HOME/library/applications/.builds/VSCode-linux-x64" ]] && echo "[App Manager] Found Visual Studio Code, proceeding with removal." || app_not_found "Visual Studio Code"
     cd $HOME/library/applications/.builds; echo "[App Manager] Removing Visual Studio Code..."
@@ -196,6 +215,9 @@ function main() {
                 "discord")
                     [[ "$(id -u)" -eq 0 ]] && build_discord_systemwide || build_discord_locally
                     ;;
+                "sober" | "roblox")
+                    [[ "$(id -u)" -eq 0 ]] && permissionViolation || build_sober_using_flatpak
+                    ;;
                 "vscode" | "code")
                     [[ "$(id -u)" -eq 0 ]] && build_type_not_supported "System-wide" "Visual Studio Code" || build_vscode_locally
                     ;;
@@ -215,6 +237,9 @@ function main() {
                     ;;
                 "discord")
                     [[ "$(id -u)" -eq 0 ]] && remove_discord_systemwide || remove_discord_locally
+                    ;;
+                "sober" | "roblox")
+                    remove_sober_using_flatpak
                     ;;
                 "vscode" | "code")
                     [[ "$(id -u)" -eq 0 ]] && build_type_not_supported "System-wide" "Visual Studio Code" || remove_vscode_locally
