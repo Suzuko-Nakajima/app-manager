@@ -5,6 +5,12 @@ function app_not_found() {
     exit 1
 }
 
+function build_app_manager_directory() {
+    echo "[App Manager] Checking 'app-manager' directory..."
+    [[ -d $HOME/.local/app-manager/library/applications ]] && echo "[App Manager - Library] Applications directory...OK" || mkdir -p $HOME/.local/app-manager/library/applications
+    echo ""
+}
+
 function build_type_not_supported() {
     build_type=$1
     appname=$2
@@ -22,7 +28,7 @@ function flatpakMissingOrCorrupted() {
 
 function get_version() {
     echo ""
-    echo "[App Manager] Version 2026.10.22.04"
+    echo "[App Manager] Version 2026.10.23.01"
     echo "~ Supplied by Killjoy Katherine."
     echo ""
 }
@@ -34,11 +40,12 @@ function permissionViolation() {
 
 function build_bitwarden_locally() {
     download_uri="https://bitwarden.com/download/?app=desktop&platform=linux&variant=appimage"
-    [[ -d "$HOME/library/applications/.builds/Bitwarden" ]] && remove_bitwarden_locally || echo "[App Manager] Bitwarden not found (userspace), proceeding to build."
+    [[ -d "$HOME/.local/app-manager/library/applications" ]] && echo "[App Manager] Applications directory...OK" || build_app_manager_directory
+    [[ -d "$HOME/.local/app-manager/library/applications/Bitwarden" ]] && remove_bitwarden_locally || echo "[App Manager] Bitwarden not found (userspace), proceeding to build."
     cd /tmp/$(whoami)/range && mkdir Bitwarden; cd ./Bitwarden
     curl -LO $download_uri && mv ./download bitwarden; chmod 750 ./bitwarden
-    cd /tmp/$(whoami)/range && mv ./Bitwarden $HOME/library/applications/.builds
-    cd $HOME/.pathfind/ && ln -fs $HOME/library/applications/.builds/Bitwarden/bitwarden
+    cd /tmp/$(whoami)/range && mv ./Bitwarden $HOME/.local/app-manager/library/applications
+    cd $HOME/.pathfind/ && ln -fs $HOME/.local/app-manager/library/applications/Bitwarden/bitwarden
     echo "[App Manager] Finished downloading Bitwarden."
     echo ""
 }
@@ -57,11 +64,12 @@ function build_bitwarden_systemwide() {
 
 function build_curseforge_locally() {
     download_uri="https://curseforge.overwolf.com/downloads/curseforge-latest-linux.AppImage"
-    [[ -d "$HOME/library/applications/.builds/CurseForge" ]] && remove_curseforge_locally || echo "[App Manager] CurseForge not found in userspace, proceeding to build."
+    [[ -d "$HOME/.local/app-manager/library/applications" ]] && echo "[App Manager] Applications directory...OK" || build_app_manager_directory
+    [[ -d "$HOME/.local/app-manager/library/applications/CurseForge" ]] && remove_curseforge_locally || echo "[App Manager] CurseForge not found in userspace, proceeding to build."
     cd /tmp/$(whoami)/range; mkdir CurseForge && cd ./CurseForge
     curl -LO $download_uri && mv ./curseforge-latest-linux.AppImage curseforge; chmod 750 ./curseforge
-    cd /tmp/$(whoami)/range && mv ./CurseForge $HOME/library/applications/.builds
-    cd $HOME/.pathfind && ln -fs $HOME/library/applications/.builds/CurseForge/curseforge
+    cd /tmp/$(whoami)/range && mv ./CurseForge $HOME/.local/app-manager/library/applications
+    cd $HOME/.pathfind && ln -fs $HOME/.local/app-manager/library/applications/CurseForge/curseforge
     echo "[App Manager] Finished downloading CurseForge."
     echo ""
 }
@@ -80,11 +88,12 @@ function build_curseforge_systemwide() {
 
 function build_discord_locally() {
     download_uri="https://discord.com/api/download?platform=linux&format=tar.gz"
-    [[ -d "$HOME/library/applications/.builds/Discord" ]] && remove_discord_locally || echo "[App Manager] Discord not found, proceeding to build."
+    [[ -d "$HOME/.local/app-manager/library/applications" ]] && echo "[App Manager] Applications directory...OK" || build_app_manager_directory
+    [[ -d "$HOME/.local/app-manager/library/applications/Discord" ]] && remove_discord_locally || echo "[App Manager] Discord not found, proceeding to build."
     cd /tmp/$(whoami)/range && curl -LO $download_uri
     mv ./download discord.tar.gz; tar -zvxf ./discord.tar.gz; rm -fr ./discord.tar.gz
-    mv ./Discord/ $HOME/library/applications/.builds
-    cd $HOME/.pathfind && ln -fs $HOME/library/applications/.builds/Discord/discord; ln -fs $HOME/library/applications/.builds/Discord/updater_bootstrap
+    mv ./Discord/ $HOME/.local/app-manager/library/applications
+    cd $HOME/.pathfind && ln -fs $HOME/.local/app-manager/library/applications/Discord/discord; ln -fs $HOME/.local/app-manager/library/applications/Discord/updater_bootstrap
     echo "[App Manager] Finished downloading Discord."; echo ""
 }
 
@@ -109,11 +118,12 @@ function build_sober_using_flatpak() {
 
 function build_vscode_locally() {
     download_uri="https://code.visualstudio.com/sha/download?build=stable&os=linux-x64"
-    [[ -d "$HOME/library/applications/.builds/VSCode-linux-x64" ]] && remove_vscode_locally || echo "[App Manager] Visual Studio Code not found, proceeding to build."
+    [[ -d "$HOME/.local/app-manager/library/applications" ]] && echo "[App Manager] Applications directory...OK" || build_app_manager_directory
+    [[ -d "$HOME/.local/app-manager/library/applications/VSCode-linux-x64" ]] && remove_vscode_locally || echo "[App Manager] Visual Studio Code not found, proceeding to build."
     cd /tmp/$(whoami)/range && rm -fr ./*
     curl -LO $download_uri && mv ./download vscode.tar.gz; tar -zvxf ./vscode.tar.gz
-    rm -fr ./vscode.tar.gz && mv ./VSCode-linux-x64 $HOME/library/applications/.builds
-    cd $HOME/.pathfind && ln -fs $HOME/library/applications/.builds/VSCode-linux-x64/code vscode
+    rm -fr ./vscode.tar.gz && mv ./VSCode-linux-x64 $HOME/.local/app-manager/library/applications
+    cd $HOME/.pathfind && ln -fs $HOME/.local/app-manager/library/applications/VSCode-linux-x64/code vscode
     echo "[App Manager] Finished downloading Visual Studio Code."; echo ""
 }
 
@@ -131,7 +141,7 @@ function create_dedicated_directory() {
 
 function create_designated_path() {
     echo "[App Manager] Designated path not set or incomplete, now proceeding with creation/fix..."
-    cd $HOME && mkdir -p library/applications/.builds || exit 1
+    mkdir -p $HOME/.local/app-manager/library/applications || exit 1
     echo "[App Manager] Designated path...COMPLETE."
 }
 
@@ -148,8 +158,8 @@ function insufficientPermissions() {
 }
 
 function remove_bitwarden_locally() {
-    [[ -d "$HOME/library/applications/.builds/Bitwarden" ]] && echo "[App Manager] Found Bitwarden, proceeding with removal." || app_not_found "Bitwarden"
-    cd $HOME/library/applications/.builds; echo "[App Manager] Removing Bitwarden..."
+    [[ -d "$HOME/.local/app-manager/library/applications/Bitwarden" ]] && echo "[App Manager] Found Bitwarden, proceeding with removal." || app_not_found "Bitwarden"
+    cd $HOME/.local/app-manager/library/applications; echo "[App Manager] Removing Bitwarden..."
     rm -fr ./Bitwarden/; rm -fr $HOME/.pathfind/bitwarden; echo "[App Manager] Removed Bitwarden"
 }
 
@@ -161,8 +171,8 @@ function remove_bitwarden_systemwide() {
 }
 
 function remove_curseforge_locally() {
-    [[ -d "$HOME/library/applications/.builds/CurseForge" ]] && echo "[App Manager] Found CurseForge, proceeding with removal." || app_not_found "CurseForge"
-    cd $HOME/library/applications/.builds; echo "[App Manager] Removing CurseForge..."
+    [[ -d "$HOME/.local/app-manager/library/applications/CurseForge" ]] && echo "[App Manager] Found CurseForge, proceeding with removal." || app_not_found "CurseForge"
+    cd $HOME/.local/app-manager/library/applications; echo "[App Manager] Removing CurseForge..."
     rm -fr ./CurseForge/; rm -fr $HOME/.pathfind/curseforge && echo "[App Manager] Removed CurseForge."
 }
 
@@ -174,8 +184,8 @@ function remove_curseforge_systemwide() {
 }
 
 function remove_discord_locally() {
-    [[ -d "$HOME/library/applications/.builds/Discord" ]] && echo "[App Manager] Found Discord, proceeding with removal." || app_not_found "Discord"
-    cd $HOME/library/applications/.builds; echo "[App Manager] Removing Discord..."
+    [[ -d "$HOME/.local/app-manager/library/applications/Discord" ]] && echo "[App Manager] Found Discord, proceeding with removal." || app_not_found "Discord"
+    cd $HOME/.local/app-manager/library/applications; echo "[App Manager] Removing Discord..."
     rm -fr ./Discord/; rm -fr $HOME/.pathfind/discord; rm -fr $HOME/.pathfind/updater_bootstrap && echo "[App Manager] Removed Discord."
 }
 
@@ -193,8 +203,8 @@ function remove_sober_using_flatpak() {
 }
 
 function remove_vscode_locally() {
-    [[ -d "$HOME/library/applications/.builds/VSCode-linux-x64" ]] && echo "[App Manager] Found Visual Studio Code, proceeding with removal." || app_not_found "Visual Studio Code"
-    cd $HOME/library/applications/.builds; echo "[App Manager] Removing Visual Studio Code..."
+    [[ -d "$HOME/.local/app-manager/library/applications/VSCode-linux-x64" ]] && echo "[App Manager] Found Visual Studio Code, proceeding with removal." || app_not_found "Visual Studio Code"
+    cd $HOME/.local/app-manager/library/applications; echo "[App Manager] Removing Visual Studio Code..."
     rm -fr ./VSCode-linux-x64/; rm -fr $HOME/.pathfind/vscode && echo "[App Manager - Local] Removed Visual Studio Code."
 }
 
