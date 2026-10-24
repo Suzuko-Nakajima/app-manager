@@ -28,7 +28,7 @@ function flatpakMissingOrCorrupted() {
 
 function get_version() {
     echo ""
-    echo "[App Manager] Version 2026.10.23.01"
+    echo "[App Manager] Version 2026.10.24.01"
     echo "~ Supplied by Killjoy Katherine."
     echo ""
 }
@@ -158,8 +158,23 @@ function insufficientPermissions() {
 }
 
 function remove_bitwarden_locally() {
+    config_dir="$HOME/.config/Bitwarden"
+    flag=$1
+    [[ -z $flag ]] && flag="--no-keep" || echo "[App Manager] Received flag."
     [[ -d "$HOME/.local/app-manager/library/applications/Bitwarden" ]] && echo "[App Manager] Found Bitwarden, proceeding with removal." || app_not_found "Bitwarden"
     cd $HOME/.local/app-manager/library/applications; echo "[App Manager] Removing Bitwarden..."
+    case $flag in
+        "--keep-configuration")
+            echo "[App Manager] Configuration files for the removed app have been kept and untouched!"
+            ;;
+        "--no-keep")
+            [[ -d $config_dir ]] && rm -fr $config_dir || echo "[App Manager] No configuration files to remove."
+            ;;
+        *)
+            echo "[App Manager] Flag ('$flag') is invalid. Please double-check spelling."
+            exit 4
+            ;;
+    esac
     rm -fr ./Bitwarden/; rm -fr $HOME/.pathfind/bitwarden; echo "[App Manager] Removed Bitwarden"
 }
 
@@ -171,7 +186,22 @@ function remove_bitwarden_systemwide() {
 }
 
 function remove_curseforge_locally() {
+    config_dir="$HOME/.config/CurseForge"
+    flag=$1
+    [[ -z $flag ]] && flag="--no-keep" || echo "[App Manager] Received flag."
     [[ -d "$HOME/.local/app-manager/library/applications/CurseForge" ]] && echo "[App Manager] Found CurseForge, proceeding with removal." || app_not_found "CurseForge"
+    case $flag in
+        "--keep-configuration")
+            echo "[App Manager] Configuration files for the removed app have been kept and untouched!"
+            ;;
+        "--no-keep")
+            [[ -d $config_dir ]] && rm -fr $config_dir || echo "[App Manager] No configuration files to remove."
+            ;;
+        *)
+            echo "[App Manager] Flag ('$flag') is invalid. Please double-check spelling."
+            exit 4
+            ;;
+    esac
     cd $HOME/.local/app-manager/library/applications; echo "[App Manager] Removing CurseForge..."
     rm -fr ./CurseForge/; rm -fr $HOME/.pathfind/curseforge && echo "[App Manager] Removed CurseForge."
 }
@@ -184,8 +214,23 @@ function remove_curseforge_systemwide() {
 }
 
 function remove_discord_locally() {
+    config_dir="$HOME/.config/discord"
+    flag=$1
+    [[ -z $flag ]] && flag="--no-keep" || echo "[App Manager] Received flag."
     [[ -d "$HOME/.local/app-manager/library/applications/Discord" ]] && echo "[App Manager] Found Discord, proceeding with removal." || app_not_found "Discord"
     cd $HOME/.local/app-manager/library/applications; echo "[App Manager] Removing Discord..."
+    case $flag in
+        "--keep-configuration")
+            echo "[App Manager] Configuration files for the removed app have been kept and untouched!"
+            ;;
+        "--no-keep")
+            [[ -d $config_dir ]] && rm -fr $config_dir || echo "[App Manager] No configuration files to remove."
+            ;;
+        *)
+            echo "[App Manager] Flag ('$flag') is invalid. Please double-check spelling."
+            exit 4
+            ;;
+    esac
     rm -fr ./Discord/; rm -fr $HOME/.pathfind/discord; rm -fr $HOME/.pathfind/updater_bootstrap && echo "[App Manager] Removed Discord."
 }
 
@@ -203,8 +248,23 @@ function remove_sober_using_flatpak() {
 }
 
 function remove_vscode_locally() {
+    config_dir="$HOME/.config/Code"
+    flag=$1
+    [[ -z $flag ]] && flag="--no-keep" || echo "[App Manager] Received flag."
     [[ -d "$HOME/.local/app-manager/library/applications/VSCode-linux-x64" ]] && echo "[App Manager] Found Visual Studio Code, proceeding with removal." || app_not_found "Visual Studio Code"
     cd $HOME/.local/app-manager/library/applications; echo "[App Manager] Removing Visual Studio Code..."
+    case $flag in
+        "--keep-configuration")
+            echo "[App Manager] Configuration files for the removed app have been kept and untouched!"
+            ;;
+        "--no-keep")
+            [[ -d $config_dir ]] && rm -fr $config_dir || echo "[App Manager] No configuration files to remove."
+            ;;
+        *)
+            echo "[App Manager] Flag ('$flag') is invalid. Please double-check spelling."
+            exit 4
+            ;;
+    esac
     rm -fr ./VSCode-linux-x64/; rm -fr $HOME/.pathfind/vscode && echo "[App Manager - Local] Removed Visual Studio Code."
 }
 
@@ -246,19 +306,19 @@ function main() {
         "--remove")
             case $app in
                 "bitwarden")
-                    [[ "$(id -u)" -eq 0 ]] && remove_bitwarden_systemwide || remove_bitwarden_locally
+                    [[ "$(id -u)" -eq 0 ]] && remove_bitwarden_systemwide || remove_bitwarden_locally $flag
                     ;;
                 "curseforge")
-                    [[ "$(id -u)" -eq 0 ]] && remove_curseforge_systemwide || remove_curseforge_locally
+                    [[ "$(id -u)" -eq 0 ]] && remove_curseforge_systemwide || remove_curseforge_locally $flag
                     ;;
                 "discord")
-                    [[ "$(id -u)" -eq 0 ]] && remove_discord_systemwide || remove_discord_locally
+                    [[ "$(id -u)" -eq 0 ]] && remove_discord_systemwide || remove_discord_locally $flag
                     ;;
                 "sober" | "roblox")
                     remove_sober_using_flatpak
                     ;;
                 "vscode" | "code")
-                    [[ "$(id -u)" -eq 0 ]] && build_type_not_supported "System-wide" "Visual Studio Code" || remove_vscode_locally
+                    [[ "$(id -u)" -eq 0 ]] && build_type_not_supported "System-wide" "Visual Studio Code" || remove_vscode_locally $flag
                     ;;
                 *)
                     echo "[App Manager - Remove] App '$app' not recognized. Please double-check spelling and use all lowercase letters."
